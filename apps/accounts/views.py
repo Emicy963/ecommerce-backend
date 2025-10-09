@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import CustomTokenObtainPairSerializer, UserRegistrationSerializer, UserSerializer
+from .serializers import CustomTokenObtainPairSerializer, StoreSerializer, UserRegistrationSerializer, UserSerializer
 
 
 
@@ -53,3 +53,27 @@ def get_user_profile(request):
     user = request.user
     serializer = UserSerializer(user)
     return Response(serializer.data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def  create_store(request):
+    # Only seller can create a store
+    if request.user.user_type != "seller":
+        return Response(
+            {"error": "Only sellers can create stores"},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    # Check if user already has a store
+    if hasattr(request.user, "store"):
+        return Response(
+            {"error": "You already have a store"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    serializer = StoreSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save(owner=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
