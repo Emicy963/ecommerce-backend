@@ -101,3 +101,19 @@ def manage_store(request):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# Admin views
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_pending_sellers(request):
+    # Only admin can access this view
+    if not request.user.user_type != "admin":
+        return Response(
+            {"error": "Permission denied"},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    pending_sellers = User.objects.filter(user_types="seller", is_approved_seller=False)
+    serializer = UserSerializer(pending_sellers, many=True)
+    return Response(serializer.data)
