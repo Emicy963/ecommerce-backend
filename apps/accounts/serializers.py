@@ -42,6 +42,7 @@ class StoreSerializer(serializers.ModelSerializer):
         fields = [
             "id", "name", "slug", "description", "logo", "owner", "is_active"
         ]
+        read_only_fields = ["slug"]
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
