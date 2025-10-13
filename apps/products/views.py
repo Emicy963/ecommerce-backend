@@ -78,3 +78,37 @@ def create_product(request):
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["PUT", "DELETE"])
+@permission_classes([IsAuthenticated])
+def manage_product(request, slug):
+    try:
+        product = Product.objects.get(slug=slug)
+
+        # Checlk if the product belongs to the user's store
+        if not hasattr(request.user, "store") or product.store != request.user.store:
+            return Response(
+                {"error": "You don't have permission to modify this product."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        if request.method == "PUT":
+            serializer = ProductCreateSerializer(product, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        elif request.method == "DELETE":
+            product.delete()
+            return Response(
+                {"message": "Product deleted successfully."},
+                status=status.HTTP_204_NO_CONTENT
+            )
+    
+    except Product.DoesNotExist:
+        return Response(
+            {"error": "Product not found."},
+            status=status.HTTP_404_NOT_FOUND
+        )
