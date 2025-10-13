@@ -8,3 +8,12 @@ class ProductListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ["id", "name", "slug", "image", "price", "store_name", "in_stock"]
+
+
+class ProductDetailSerializer(serializers.ModelSerializer):
+    store = serializers.StringRelatedField(read_only=True)
+    category = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = Product
+        fields = ["id", "name", "slug", "description", "image", "price", "store", "category", "in_stock", "stock_quantity", "created_at"]
