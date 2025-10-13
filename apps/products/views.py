@@ -1,8 +1,9 @@
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from .models import Product
-from .serializers import ProductListSerializer
+from .serializers import ProductDetailSerializer, ProductListSerializer
 
 
 @api_view(["GET"])
@@ -17,3 +18,17 @@ def products_list(request):
     
     serializer = ProductListSerializer(products, many=True)
     return Response(serializer.data)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def product_detail(request, slug):
+    try:
+        product = Product.objects.get(slug=slug, store__is_active=True)
+        serializer = ProductDetailSerializer(product)
+        return Response(serializer.data)
+    except Product.DoesNotExist:
+        return Response(
+            {"error": "Product not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
