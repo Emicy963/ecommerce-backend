@@ -1,9 +1,9 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from .models import Category, Product
-from .serializers import CategoryDetailSerializer, CategoryListSerializer, ProductDetailSerializer, ProductListSerializer
+from .serializers import CategoryDetailSerializer, CategoryListSerializer, ProductCreateSerializer, ProductDetailSerializer, ProductListSerializer
 
 
 @api_view(["GET"])
@@ -54,3 +54,27 @@ def category_detail(request, slug):
             {"error": "Category not found"},
             status=status.HTTP_404_NOT_FOUND
         )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def create_product(request):
+    # Only sellers can create products
+    if request.user.user_type != "seller":
+        return Response(
+            {"error": "Only sellers can create products."},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    # Check if seller is approved and store is active
+    if not request.user.is_approved or not hasattr(request.user, "store") or not request.user.store.is_active:
+        return Response(
+            {"error": "Your store is not active or not approved yet."},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    serializer = ProductCreateSerializer(data=request.data, context={"request": request})
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
