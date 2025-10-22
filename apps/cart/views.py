@@ -15,3 +15,14 @@ def get_cart(request, cart_code):
         return Response(serializer.data)
     except Cart.DoesNotExist:
         return Response({"error": "Cart not found."}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def create_cart(request):
+    import random
+    import string
+    cart_code = "".join(random.choices(string.ascii_letters + string.digits, k=11))
+    cart = Cart.objects.create(cart_code=cart_code)
+    serializer = CartSerializer(cart)
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
