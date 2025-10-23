@@ -3,6 +3,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from .models import Cart
+from products.models import Product
 from .serializers import CartSerializer
 
 
@@ -26,3 +27,19 @@ def create_cart(request):
     cart = Cart.objects.create(cart_code=cart_code)
     serializer = CartSerializer(cart)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+@api_view(["POST"])
+def add_to_cart(request, cart_code):
+    cart_code = request.data.get("cart_code")
+    product_id = request.data.get("product_id")
+    quantity = request.data.get("quantity", 1)
+
+    cart, created = Cart.objects.get_or_create(cart_code=cart_code)
+
+    try:
+        product = Product.objects.get(id=product_id, in_stock=True)
+    except Product.DoesNotExist:
+        return Response(
+            {"error": "Produto não encontrado ou fora de estoque."},
+            status=status.HTTP_404_NOT_FOUND
+        )
