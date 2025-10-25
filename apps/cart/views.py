@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from .models import Cart
+from .models import Cart, CartItem
 from products.models import Product
 from .serializers import CartSerializer
 
@@ -50,3 +50,22 @@ def add_to_cart(request, cart_code):
             {"error": f"Quantidade solicitada excede o estoque disponível. Apenas {product.stock_quantity} disponível."},
             status=status.HTTP_400_BAD_REQUEST
         )
+    
+    cartitem, created = CartItem.objects.get_or_create(product=product, cart=cart)
+
+    if created:
+        cartitem.quantity = quantity
+    else:
+        # Verificar se a nova quantidade in estoque é excedido
+        new_quantity = cartitem.quantity + quantity
+        if product.stock_quantity < new_quantity:
+            return Response(
+                {"error": f"Quantidade solicitada excede o estoque disponível. Apenas {product.stock_quantity} disponível."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        cartitem.quantity = new_quantity
+    
+    cartitem.save()
+
+    serializer = CartSerializer(cart)
+    return Response(serializer.data)
