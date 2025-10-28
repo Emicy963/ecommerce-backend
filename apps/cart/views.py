@@ -1,6 +1,6 @@
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from .models import Cart, CartItem
 from products.models import Product
@@ -112,3 +112,18 @@ def delete_cartitem(request, pk):
             {"error": "Item não encontrado no carrinho."},
             status=status.HTTP_404_NOT_FOUND
         )
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_user_cart(request):
+    cart, created = Cart.objects.get_or_create(user=request.user)
+    if created:
+        # Gerar um código para o carrinho
+        import random
+        import string
+        cart_code = "".join(random.choices(string.ascii_letters + string.digits, k=11))
+        cart.cart_code = cart_code
+        cart.save()
+    serializer = CartSerializer(cart)
+    return Response(serializer.data)
