@@ -127,3 +127,14 @@ def create_user_cart(request):
         cart.save()
     serializer = CartSerializer(cart)
     return Response(serializer.data)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_user_cart(request):
+    try:
+        cart = Cart.objects.get(user=request.user)
+        serializer = CartSerializer(cart)
+        return Response(serializer.data)
+    except Cart.DoesNotExist:
+        return Response({"error": "Carrinho não encontrado."}, status=status.HTTP_404_NOT_FOUND)
