@@ -124,3 +124,21 @@ def get_user_orders(request):
     orders = Order.objects.filter(user=request.user).order_by("-created_at")
     serializer = OrderSerializer(orders, many=True)
     return Response(serializer.data)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_order_detail(request, order_number):
+    """
+    Obtém detalhes de um pedido específico
+    """
+
+    try:
+        order = Order.objects.get(order_number=order_number, user=request.user)
+        serializer = OrderSerializer(order)
+        return Response(serializer.data)
+    except Order.DoesNotExist:
+        return Response(
+            {"error": "Pedido não encontrado"},
+            status=status.HTTP_404_NOT_FOUND
+        )
