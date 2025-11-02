@@ -112,3 +112,15 @@ def create_order(request):
             {"error": "Carrinho não encontrado"},
             status=status.HTTP_404_NOT_FOUND
         )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_user_orders(request):
+    """
+    Obtém todos os pedidos do usuário
+    """
+
+    orders = Order.objects.filter(user=request.user).order_by("-created_at")
+    serializer = OrderSerializer(orders, many=True)
+    return Response(serializer.data)
