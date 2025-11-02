@@ -62,3 +62,38 @@ class AOAPaymentProcessor:
             order.save()
 
             return False, None, "Pagamento falhou. Por favor, tenta de novo ou use um outro método."
+    
+    @staticmethod
+    def refund_payment(order: Order, payment: Payment):
+        """
+        Processa um reembolso
+
+        Args:
+            order: Objeto Order
+            payment: Objeto Payment
+        
+        Returns:
+            tuple: (success: bool, message: str)
+        """
+
+        try:            
+            # Simulação de processamento de reembolso
+            success = random.choice([True, True, False]) # 66% de chance de sucesso
+
+            if success:
+                # Gerar ID de transação de reembolso
+                refund_id = f"REF-{"".join(random.choices(string.ascii_uppercase + string.digits, k=16))}"
+                payment.payment_status = "refunded"
+                payment.save()
+
+                # Atualizar status do pedido
+                order.status = "cancelled"
+                order.save()
+
+                return True, f"Reembolso feito com sucesso. Reembolso ID: {refund_id}"
+            
+            else:
+                return False, "Falha no reembolso. Por favor, contactar o nosso suporte."
+        
+        except Payment.DoesNotExist:
+            return False, "Nenhuma pagamento desse pedido encontrado."
