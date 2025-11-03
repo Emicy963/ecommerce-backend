@@ -4,8 +4,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from apps.orders.models import OrderItem
-from .models import Review
-from .serializers import ReviewSerializer
+from .models import ProductRating, Review
+from .serializers import ProductRatingSerializer, ReviewSerializer
 
 User = get_user_model
 
@@ -134,3 +134,15 @@ def get_product_review(request, product_id):
     
     reviews = Review.objects.filter(product=product)
     serializer = ReviewSerializer(reviews, many=True)
+
+    # Obter classificação média
+    try:
+        rating = ProductRating.objects.get(product=product)
+        rating_data = ProductRatingSerializer(rating).data
+    except ProductRating.DoesNotExist:
+        rating_data = {"average_rating": 0.0, "total_reviews": 0}
+    
+    return Response({
+        "reviews": serializer.data,
+        "rating": rating_data
+    })
