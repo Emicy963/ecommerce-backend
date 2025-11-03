@@ -12,7 +12,7 @@ User = get_user_model
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def add_reviews(request):
+def add_review(request):
     """
     Adicinar uma avaliação para um produto
     """
@@ -115,7 +115,7 @@ def delete_review(request, pk):
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def get_product_review(request, product_id):
+def get_product_reviews(request, product_id):
     """
     Obtém todas as avaliações para um produto específico
     """
