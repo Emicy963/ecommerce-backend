@@ -115,3 +115,22 @@ def delete_review(request, pk):
             {"error": "Avaliação não encontrada."},
             status=status.HTTP_404_NOT_FOUND
         )
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_product_review(request, product_id):
+    """
+    Obtém todas as avaliações para um produto específico
+    """
+    try:
+        from apps.products.models import Product
+        product = Product.objects.get(id=product_id)
+    except Product.DoesNotExist:
+        return Response(
+            {"error": "Produto não encontrado."},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    reviews = Review.objects.filter(product=product)
+    serializer = ReviewSerializer(reviews, many=True)
