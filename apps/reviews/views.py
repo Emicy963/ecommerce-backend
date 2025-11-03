@@ -146,3 +146,15 @@ def get_product_review(request, product_id):
         "reviews": serializer.data,
         "rating": rating_data
     })
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_user_reviews(request):
+    """
+    Obtém todas as avaliações do usuário
+    """
+
+    reviews = Review.objects.filter(user=request.user)
+    serializer = ReviewSerializer(reviews, many=True)
+    return Response(serializer.data)
