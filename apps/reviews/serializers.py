@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Review
+from .models import ProductRating, Review
 
 User = get_user_model()
 
@@ -10,3 +10,9 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = ["id", "user", "rating", "comment", "created_at", "updated_at"]
+
+
+class ProductRatingSerialier(serializers.ModelSerializer):
+    class Meta:
+        model = ProductRating
+        fields = ["average_rating", "total_reviews"]
