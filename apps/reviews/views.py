@@ -158,3 +158,32 @@ def get_user_reviews(request):
     reviews = Review.objects.filter(user=request.user)
     serializer = ReviewSerializer(reviews, many=True)
     return Response(serializer.data)
+
+
+# Views para vendedores
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_store_product_reviews(request):
+    """
+    Obtém todas as avaliações dos produtos da loja do vendedor
+    """
+
+    # Verificar se o usuário é um vendedor
+    if request.user.user_type != "seller":
+        return Response(
+            {"error": "Apenas vendedores podem acessas esta informação."},
+            status=status.HTTP_403_FORBIDDEN
+        )
+    
+    # Verificar se o vendedor tem uma loja
+    if not hasattr(request.user, "store"):
+        return Response(
+            {"error": "Você não tem uma loja associada."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Obter avaliações dos produtos da loja
+    store_products = request.user.store.products.all()
+    reviews = Review.objects.filter(product__in=store_products)
+    serializer = ReviewSerializer(reviews, many=True)
+    return Response(serializer.data)
