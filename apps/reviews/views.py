@@ -24,43 +24,41 @@ def add_reviews(request):
     if not product_id or not rating:
         return Response(
             {"error": "É necessário o ID do produto e o rating"},
-            status=status.HTTP_400_BAD_REQUEST
+            status=status.HTTP_400_BAD_REQUEST,
         )
-    
+
     try:
         from apps.products.models import Product
+
         product = Product.objects.get(id=product_id)
     except Product.DoesNotExist:
         return Response(
-            {"error":"Produto não encontrado."},
-            status=status.HTTP_404_NOT_FOUND
+            {"error": "Produto não encontrado."}, status=status.HTTP_404_NOT_FOUND
         )
-    
+
     # Verificar se o usuário já avaliou este produto
     if Review.objects.filter(product=product, user=request.user).exists():
         return Response(
             {"error": "Você já avaliou este produto."},
-            status=status.HTTP_400_BAD_REQUEST
+            status=status.HTTP_400_BAD_REQUEST,
         )
-    
+
     # Verificar se o usuário comprou este producto
     has_purchased = OrderItem.objects.filter(
         product=product,
         order__user=request.user,
-        order__status_in=["confirmed", "processing", "shipped", "delivered"]
+        order__status_in=["confirmed", "processing", "shipped", "delivered"],
     ).exists()
 
     if not has_purchased:
         return Response(
-            {"error": "Podes apenas avaliar o produto você já comprou."}, status=status.HTTP_400_BAD_REQUEST
+            {"error": "Podes apenas avaliar o produto você já comprou."},
+            status=status.HTTP_400_BAD_REQUEST,
         )
-    
+
     # Criar avaliação
     review = Review.objects.create(
-        product=product,
-        user=request.user,
-        rating=rating,
-        comment=comment
+        product=product, user=request.user, rating=rating, comment=comment
     )
 
     serializer = ReviewSerializer(review)
@@ -74,14 +72,13 @@ def update_review(request, pk):
     Atualiza uma avaliação existente
     """
 
-    try: 
+    try:
         review = Review.objects.get(pk=pk, user=request.user)
     except Review.DoesNotExist:
         return Response(
-            {"error": "Avalaição não encontrada."},
-            status=status.HTTP_404_NOT_FOUND
+            {"error": "Avalaição não encontrada."}, status=status.HTTP_404_NOT_FOUND
         )
-    
+
     rating = request.data.get("rating")
     comment = request.data.get("comment")
 
@@ -108,12 +105,11 @@ def delete_review(request, pk):
         review.delete()
         return Response(
             {"message": "Avaliação excluída com sucesso."},
-            status=status.HTTP_204_NO_CONTENT
+            status=status.HTTP_204_NO_CONTENT,
         )
     except Review.DoesNotExist:
         return Response(
-            {"error": "Avaliação não encontrada."},
-            status=status.HTTP_404_NOT_FOUND
+            {"error": "Avaliação não encontrada."}, status=status.HTTP_404_NOT_FOUND
         )
 
 
@@ -125,13 +121,13 @@ def get_product_review(request, product_id):
     """
     try:
         from apps.products.models import Product
+
         product = Product.objects.get(id=product_id)
     except Product.DoesNotExist:
         return Response(
-            {"error": "Produto não encontrado."},
-            status=status.HTTP_404_NOT_FOUND
+            {"error": "Produto não encontrado."}, status=status.HTTP_404_NOT_FOUND
         )
-    
+
     reviews = Review.objects.filter(product=product)
     serializer = ReviewSerializer(reviews, many=True)
 
@@ -141,11 +137,8 @@ def get_product_review(request, product_id):
         rating_data = ProductRatingSerializer(rating).data
     except ProductRating.DoesNotExist:
         rating_data = {"average_rating": 0.0, "total_reviews": 0}
-    
-    return Response({
-        "reviews": serializer.data,
-        "rating": rating_data
-    })
+
+    return Response({"reviews": serializer.data, "rating": rating_data})
 
 
 @api_view(["GET"])
@@ -172,16 +165,16 @@ def get_store_product_reviews(request):
     if request.user.user_type != "seller":
         return Response(
             {"error": "Apenas vendedores podem acessas esta informação."},
-            status=status.HTTP_403_FORBIDDEN
+            status=status.HTTP_403_FORBIDDEN,
         )
-    
+
     # Verificar se o vendedor tem uma loja
     if not hasattr(request.user, "store"):
         return Response(
             {"error": "Você não tem uma loja associada."},
-            status=status.HTTP_400_BAD_REQUEST
+            status=status.HTTP_400_BAD_REQUEST,
         )
-    
+
     # Obter avaliações dos produtos da loja
     store_products = request.user.store.products.all()
     reviews = Review.objects.filter(product__in=store_products)

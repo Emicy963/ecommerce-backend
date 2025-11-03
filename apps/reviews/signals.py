@@ -30,4 +30,3 @@ def update_product_rating_on_delete(sende, instance, **kwargs):
     product_rating.average_rating = reviews_average
     product_rating.total_reviews = reviews_average
     product_rating.save()
-

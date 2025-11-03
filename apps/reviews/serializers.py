@@ -4,6 +4,7 @@ from .models import ProductRating, Review
 
 User = get_user_model()
 
+
 class ReviewSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField(read_only=True)
 
