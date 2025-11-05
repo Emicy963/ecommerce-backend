@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
+from .models import Store
 
 User = get_user_model()
 
@@ -37,3 +38,26 @@ class UserModelTests(TestCase):
         self.assertEqual(admin_user.email, "admin@example.com")
         self.assertTrue(admin_user.is_staff)
         self.assertTrue(admin_user.is_superuser)
+
+
+class StoreModelTest(TestCase):
+    """Testes para o modelo Store"""
+
+    def setUp(self):
+        self.seller = User.objects.create_user(username="seller",
+            email="seller@example.com",
+            password="sellerpass123",
+            user_type="seller"
+        )
+    
+    def test_create_store(self):
+        """Testa a criação de uma loja"""
+        store = Store.objects.create(
+            name="Test Store",
+            description="A test store",
+            owner=self.seller
+        )
+        self.assertEqual(store.name, "Test Store")
+        self.assertEqual(store.owner, self.seller)
+        self.assertTrue(store.slug)  # Verifica se o slug foi gerado automaticamente
+        self.assertTrue(store.is_active)
