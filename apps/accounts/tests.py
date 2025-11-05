@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
+from rest_framework.test import APITestCase
 from .models import Store
 
 User = get_user_model()
@@ -61,3 +62,19 @@ class StoreModelTest(TestCase):
         self.assertEqual(store.owner, self.seller)
         self.assertTrue(store.slug)  # Verifica se o slug foi gerado automaticamente
         self.assertTrue(store.is_active)
+
+
+class AuthenticationAPITest(APITestCase):
+    """Testes para os endpoints de autenticação"""
+    
+    def setUp(self):
+        """Configuração inicial para os testes"""
+        self.user_data = {
+            "username": "testuser",
+            "email": "test@example.com",
+            "password": "testpass123",
+            "first_name": "Test",
+            "last_name": "User",
+            "user_type": "buyer"
+        }
+        self.user = User.objects.create_user(**self.user_data)
