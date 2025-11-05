@@ -20,7 +20,9 @@ class Cart(models.Model):
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name="cartitem")
-    product = models.ForeignKey("products.Product", on_delete=models.CASCADE, related_name="item")
+    product = models.ForeignKey(
+        "products.Product", on_delete=models.CASCADE, related_name="item"
+    )
     quantity = models.IntegerField(default=1)
 
     def __str__(self):

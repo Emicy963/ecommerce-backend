@@ -16,7 +16,19 @@ class ProductDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ["id", "name", "slug", "description", "image", "price", "store", "category", "in_stock", "stock_quantity", "created_at"]
+        fields = [
+            "id",
+            "name",
+            "slug",
+            "description",
+            "image",
+            "price",
+            "store",
+            "category",
+            "in_stock",
+            "stock_quantity",
+            "created_at",
+        ]
 
 
 class CategoryListSerializer(serializers.ModelSerializer):
@@ -36,13 +48,22 @@ class CategoryDetailSerializer(serializers.ModelSerializer):
 class ProductCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ["name", "description", "price", "image", "featured", "in_stock", "stock_quantity", "category"]
-    
+        fields = [
+            "name",
+            "description",
+            "price",
+            "image",
+            "featured",
+            "in_stock",
+            "stock_quantity",
+            "category",
+        ]
+
     def create(self, validated_data):
         # Get the store from the context
         user = self.context["request"].user
         if not hasattr(user, "store"):
             raise serializers.ValidationError("You don't have a store.")
-        
+
         validated_data["store"] = user.store
         return super().create(validated_data)

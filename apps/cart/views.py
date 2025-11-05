@@ -23,10 +23,12 @@ def get_cart(request, cart_code):
 def create_cart(request):
     import random
     import string
+
     cart_code = "".join(random.choices(string.ascii_letters + string.digits, k=11))
     cart = Cart.objects.create(cart_code=cart_code)
     serializer = CartSerializer(cart)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 
 @api_view(["POST"])
 def add_to_cart(request, cart_code):
@@ -41,16 +43,18 @@ def add_to_cart(request, cart_code):
     except Product.DoesNotExist:
         return Response(
             {"error": "Produto não encontrado ou fora de estoque."},
-            status=status.HTTP_404_NOT_FOUND
+            status=status.HTTP_404_NOT_FOUND,
         )
-    
+
     # Verificar se tem producto suficiente em estoque
     if product.stock_quantity < quantity:
         return Response(
-            {"error": f"Quantidade solicitada excede o estoque disponível. Apenas {product.stock_quantity} disponível."},
-            status=status.HTTP_400_BAD_REQUEST
+            {
+                "error": f"Quantidade solicitada excede o estoque disponível. Apenas {product.stock_quantity} disponível."
+            },
+            status=status.HTTP_400_BAD_REQUEST,
         )
-    
+
     cartitem, created = CartItem.objects.get_or_create(product=product, cart=cart)
 
     if created:
@@ -60,11 +64,13 @@ def add_to_cart(request, cart_code):
         new_quantity = cartitem.quantity + quantity
         if product.stock_quantity < new_quantity:
             return Response(
-                {"error": f"Quantidade solicitada excede o estoque disponível. Apenas {product.stock_quantity} disponível."},
-                status=status.HTTP_400_BAD_REQUEST
+                {
+                    "error": f"Quantidade solicitada excede o estoque disponível. Apenas {product.stock_quantity} disponível."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
             )
         cartitem.quantity = new_quantity
-    
+
     cartitem.save()
 
     serializer = CartSerializer(cart)
@@ -83,21 +89,26 @@ def update_cartitem_quantity(request):
         # Verificar se a nova quantidade excede o estoque
         if product.stock_quantity < quantity:
             return Response(
-                {"error": f"Quantidade solicitada excede o estoque disponível. Apenas {product.stock_quantity} disponível."},
-                status=status.HTTP_400_BAD_REQUEST
+                {
+                    "error": f"Quantidade solicitada excede o estoque disponível. Apenas {product.stock_quantity} disponível."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         cartitem.quantity = quantity
         cartitem.save()
 
         serializer = CartItemSerializer(cartitem)
         return Response(
-            {"data": serializer.data, "message": "Item no carrinho atualizado com sucesso!"}
+            {
+                "data": serializer.data,
+                "message": "Item no carrinho atualizado com sucesso!",
+            }
         )
     except CartItem.DoesNotExist:
         return Response(
             {"error": "Item não encontrado no carrinho."},
-            status=status.HTTP_404_NOT_FOUND
+            status=status.HTTP_404_NOT_FOUND,
         )
 
 
@@ -106,11 +117,13 @@ def delete_cartitem(request, pk):
     try:
         cartitem = CartItem.objects.get(id=pk)
         cartitem.delete()
-        return Response("Item do carrinho deletado com sucesso.", status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            "Item do carrinho deletado com sucesso.", status=status.HTTP_204_NO_CONTENT
+        )
     except CartItem.DoesNotExist:
         return Response(
             {"error": "Item não encontrado no carrinho."},
-            status=status.HTTP_404_NOT_FOUND
+            status=status.HTTP_404_NOT_FOUND,
         )
 
 
@@ -122,6 +135,7 @@ def create_user_cart(request):
         # Gerar um código para o carrinho
         import random
         import string
+
         cart_code = "".join(random.choices(string.ascii_letters + string.digits, k=11))
         cart.cart_code = cart_code
         cart.save()
@@ -137,7 +151,9 @@ def get_user_cart(request):
         serializer = CartSerializer(cart)
         return Response(serializer.data)
     except Cart.DoesNotExist:
-        return Response({"error": "Carrinho não encontrado."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"error": "Carrinho não encontrado."}, status=status.HTTP_404_NOT_FOUND
+        )
 
 
 @api_view(["POST"])
@@ -148,26 +164,32 @@ def merge_carts(request):
         if created:
             import random
             import string
-            user_cart.cart_code = "".join(random.choices(string.ascii_letters + string.digits, k=11))
+
+            user_cart.cart_code = "".join(
+                random.choices(string.ascii_letters + string.digits, k=11)
+            )
             user_cart.save()
-        
+
         temp_cart_code = request.data.get("temp_cart_code")
         if temp_cart_code:
-            try: 
+            try:
                 temp_cart = Cart.objects.get(cart_code=temp_cart_code)
                 for item in temp_cart.cartitems.all():
-                    if not item.product.in_stock or item.product.stock_quantity < item.quantity:
-                        continue # Skip out of stock items
+                    if (
+                        not item.product.in_stock
+                        or item.product.stock_quantity < item.quantity
+                    ):
+                        continue  # Skip out of stock items
 
                     CartItem.objects.update_or_create(
                         cart=user_cart,
                         product=item.product,
-                        defaults={"quantity": item.quantity}
+                        defaults={"quantity": item.quantity},
                     )
                 temp_cart.delete()
             except Cart.DoesNotExist:
                 pass
-        
+
         serializer = CartSerializer(user_cart)
         return Response(serializer.data)
     except Exception as e:

@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from django.utils.text import slugify
 from django.conf import settings
 
+
 class CustomUser(AbstractUser):
     TYPE_USER = [
         ("buyer", "Comprador"),
@@ -23,6 +24,7 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.email
+
 
 class Store(models.Model):
     name = models.CharField(max_length=100)
@@ -48,6 +50,6 @@ class Store(models.Model):
                 counter += 1
             self.slug = unique_slug
         super().save(*args, **kwargs)
-    
+
     def __str__(self):
         return self.name

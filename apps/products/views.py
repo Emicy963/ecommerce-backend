@@ -4,7 +4,13 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.db.models import Q
 from .models import Category, Product
-from .serializers import CategoryDetailSerializer, CategoryListSerializer, ProductCreateSerializer, ProductDetailSerializer, ProductListSerializer
+from .serializers import (
+    CategoryDetailSerializer,
+    CategoryListSerializer,
+    ProductCreateSerializer,
+    ProductDetailSerializer,
+    ProductListSerializer,
+)
 
 
 @api_view(["GET"])
@@ -16,7 +22,7 @@ def products_list(request):
         products = Product.objects.filter(store__slug=store_slug, store__is_active=True)
     else:
         products = Product.objects.filter(feature=True, store__is_active=True)
-    
+
     serializer = ProductListSerializer(products, many=True)
     return Response(serializer.data)
 
@@ -30,8 +36,7 @@ def product_detail(request, slug):
         return Response(serializer.data)
     except Product.DoesNotExist:
         return Response(
-            {"error": "Product not found"},
-            status=status.HTTP_404_NOT_FOUND
+            {"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND
         )
 
 
@@ -52,8 +57,7 @@ def category_detail(request, slug):
         return Response(serializer.data)
     except Category.DoesNotExist:
         return Response(
-            {"error": "Category not found"},
-            status=status.HTTP_404_NOT_FOUND
+            {"error": "Category not found"}, status=status.HTTP_404_NOT_FOUND
         )
 
 
@@ -64,17 +68,23 @@ def create_product(request):
     if request.user.user_type != "seller":
         return Response(
             {"error": "Only sellers can create products."},
-            status=status.HTTP_403_FORBIDDEN
+            status=status.HTTP_403_FORBIDDEN,
         )
-    
+
     # Check if seller is approved and store is active
-    if not request.user.is_approved or not hasattr(request.user, "store") or not request.user.store.is_active:
+    if (
+        not request.user.is_approved
+        or not hasattr(request.user, "store")
+        or not request.user.store.is_active
+    ):
         return Response(
             {"error": "Your store is not active or not approved yet."},
-            status=status.HTTP_403_FORBIDDEN
+            status=status.HTTP_403_FORBIDDEN,
         )
-    
-    serializer = ProductCreateSerializer(data=request.data, context={"request": request})
+
+    serializer = ProductCreateSerializer(
+        data=request.data, context={"request": request}
+    )
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -91,28 +101,30 @@ def manage_product(request, slug):
         if not hasattr(request.user, "store") or product.store != request.user.store:
             return Response(
                 {"error": "You don't have permission to modify this product."},
-                status=status.HTTP_403_FORBIDDEN
+                status=status.HTTP_403_FORBIDDEN,
             )
-        
+
         if request.method == "PUT":
-            serializer = ProductCreateSerializer(product, data=request.data, partial=True)
+            serializer = ProductCreateSerializer(
+                product, data=request.data, partial=True
+            )
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+
         elif request.method == "DELETE":
             product.delete()
             return Response(
                 {"message": "Product deleted successfully."},
-                status=status.HTTP_204_NO_CONTENT
+                status=status.HTTP_204_NO_CONTENT,
             )
-    
+
     except Product.DoesNotExist:
         return Response(
-            {"error": "Product not found."},
-            status=status.HTTP_404_NOT_FOUND
+            {"error": "Product not found."}, status=status.HTTP_404_NOT_FOUND
         )
+
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
@@ -120,15 +132,14 @@ def product_search(request):
     query = request.query_params.get("query")
     if not query:
         return Response(
-            {"error": "No query provided."},
-            status=status.HTTP_400_BAD_REQUEST
+            {"error": "No query provided."}, status=status.HTTP_400_BAD_REQUEST
         )
-    
+
     product = Product.objects.filter(
-        Q(name__icontains=query) |
-        Q(description__icontains=query) |
-        Q(category__name__icontains=query),
-        store__is_active=True
+        Q(name__icontains=query)
+        | Q(description__icontains=query)
+        | Q(category__name__icontains=query),
+        store__is_active=True,
     )
 
     serializer = ProductListSerializer(product, many=True)
@@ -140,12 +151,10 @@ def product_search(request):
 def store_products(request, slug):
     try:
         from accounts.models import Store
+
         store = Store.objects.get(slug=slug, is_active=True)
         products = Product.objects.filter(store=store)
         serializer = ProductListSerializer(products, many=True)
         return Response(serializer.data)
     except Store.DoesNotExist:
-        return Response(
-            {"error": "Store not found."},
-            status=status.HTTP_404_NOT_FOUND
-        )
+        return Response({"error": "Store not found."}, status=status.HTTP_404_NOT_FOUND)

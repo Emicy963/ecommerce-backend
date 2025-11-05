@@ -5,11 +5,20 @@ from .models import Store
 
 User = get_user_model()
 
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            "id", "username" ,"first_name", "last_name", "email", "user_type", "avatar_url", "birth_date", "phone"
+            "id",
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+            "user_type",
+            "avatar_url",
+            "birth_date",
+            "phone",
         ]
 
 
@@ -20,14 +29,22 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            "username", "first_name", "last_name", "email", "password", "confirm_password", "user_type", "birth_date", "phone"
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+            "password",
+            "confirm_password",
+            "user_type",
+            "birth_date",
+            "phone",
         ]
-    
+
     def validate(self, attrs):
         if attrs["password"] != attrs["confirm_password"]:
             raise serializers.ValidationError("Passwords don't match.")
         return attrs
-    
+
     def create(self, validated_data):
         validated_data.pop("confirm_password")
         user = User.objects.create_user(**validated_data)
@@ -39,9 +56,7 @@ class StoreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Store
-        fields = [
-            "id", "name", "slug", "description", "logo", "owner", "is_active"
-        ]
+        fields = ["id", "name", "slug", "description", "logo", "owner", "is_active"]
         read_only_fields = ["slug"]
 
 
@@ -53,7 +68,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token["name"] = user.get_full_name() or user.username
         token["user_type"] = user.user_type
         return token
-    
+
     def validate(self, attrs):
         identifier = attrs.get("username")
         password = attrs.get("password")
