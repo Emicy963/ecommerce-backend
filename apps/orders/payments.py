@@ -21,7 +21,7 @@ class AOAPaymentProcessor:
 
         Args:
             order: Objeto Order
-            payment_methdo: Método de pagamento ("reference", "mobile", "card")
+            payment_method: Método de pagamento ("reference", "mobile", "card")
             reference_number: Número de referência (para pagamentos por referência)
 
         Returns:
@@ -47,12 +47,12 @@ class AOAPaymentProcessor:
             payment.payment_status = "completed"
             payment.save()
 
-            # Atualizar stauts do pedido
+            # Atualizar status do pedido  # Corrigido: stauts para status
             order.payment_status = "paid"
             order.status = "confirmed"
             order.save()
 
-            return True, transaction_id, "Payment processed successfully"
+            return True, transaction_id, "Pagamento processado com sucesso"
         else:
             payment.payment_status = "failed"
             payment.save()
@@ -64,7 +64,7 @@ class AOAPaymentProcessor:
             return (
                 False,
                 None,
-                "Pagamento falhou. Por favor, tenta de novo ou use um outro método.",
+                "Pagamento falhou. Por favor, tente novamente ou use outro método.",
             )
 
     @staticmethod
@@ -95,13 +95,16 @@ class AOAPaymentProcessor:
                 order.status = "cancelled"
                 order.save()
 
-                return True, f"Reembolso feito com sucesso. Reembolso ID: {refund_id}"
+                return (
+                    True,
+                    f"Reembolso feito com sucesso. ID do reembolso: {refund_id}",
+                )
 
             else:
                 return (
                     False,
-                    "Falha no reembolso. Por favor, contactar o nosso suporte.",
+                    "Falha no reembolso. Por favor, contacte nosso suporte.",
                 )
 
         except Payment.DoesNotExist:
-            return False, "Nenhuma pagamento desse pedido encontrado."
+            return False, "Nenhum pagamento encontrado para este pedido."

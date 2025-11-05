@@ -4,12 +4,16 @@ from apps.products.models import Product
 
 
 class Review(models.Model):
+    """
+    Modelo para representar avaliações de produtos.
+    """
+
     RATINGS_CHOICES = [
-        (1, "Poor"),
-        (2, "Fair"),
-        (3, "Good"),
-        (4, "Very Good"),
-        (5, "Excellent"),
+        (1, "Ruim"),
+        (2, "Regular"),
+        (3, "Bom"),
+        (4, "Muito Bom"),
+        (5, "Excelente"),
     ]
 
     product = models.ForeignKey(
@@ -24,7 +28,7 @@ class Review(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.user.username}'s review of {self.product.name}"
+        return f"Avaliação de {self.user.username} para {self.product.name}"
 
     class Meta:
         unique_together = ["product", "user"]
@@ -32,6 +36,10 @@ class Review(models.Model):
 
 
 class ProductRating(models.Model):
+    """
+    Modelo para armazenar a classificação média de um produto.
+    """
+
     product = models.OneToOneField(
         Product, on_delete=models.CASCADE, related_name="rating"
     )
@@ -39,4 +47,4 @@ class ProductRating(models.Model):
     total_reviews = models.PositiveIntegerField(default=0)
 
     def __str__(self):
-        return f"{self.product.name} - {self.average_rating} ({self.total_reviews}) reviews."
+        return f"{self.product.name} - {self.average_rating} ({self.total_reviews}) avaliações."

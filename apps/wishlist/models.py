@@ -4,6 +4,10 @@ from apps.products.models import Product
 
 
 class Wishlist(models.Model):
+    """
+    Modelo para representar itens na lista de desejos de um usuário.
+    """
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="wishlist"
     )
@@ -17,4 +21,4 @@ class Wishlist(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.user.username} - {self.product.name} in wishlist"
+        return f"{self.user.username} - {self.product.name} na lista de desejos"

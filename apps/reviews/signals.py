@@ -6,27 +6,41 @@ from .models import ProductRating, Review
 
 @receiver(post_save, sender=Review)
 def update_product_rating_on_save(sender, instance, **kwargs):
-    produt = instance.product
-    reviews = produt.reviews.all()
+    """
+    Atualiza a classificação média de um produto quando uma avaliação é salva.
+
+    Args:
+        sender: Modelo que enviou o sinal (Review)
+        instance: Instância do modelo que foi salva
+    """
+    product = instance.product
+    reviews = product.reviews.all()
     total_reviews = reviews.count()
 
     reviews_average = reviews.aggregate(Avg("rating"))["rating__avg"] or 0.0
 
-    product_rating, created = ProductRating.objects.get_or_create(product=produt)
+    product_rating, created = ProductRating.objects.get_or_create(product=product)
     product_rating.average_rating = reviews_average
     product_rating.total_reviews = total_reviews
     product_rating.save()
 
 
 @receiver(post_delete, sender=Review)
-def update_product_rating_on_delete(sende, instance, **kwargs):
+def update_product_rating_on_delete(sender, instance, **kwargs):
+    """
+    Atualiza a classificação média de um produto quando uma avaliação é excluída.
+
+    Args:
+        sender: Modelo que enviou o sinal (Review)
+        instance: Instância do modelo que foi excluída
+    """
     product = instance.product
     reviews = product.reviews.all()
-    total_reviews = reviews.conunt()
+    total_reviews = reviews.count()
 
     reviews_average = reviews.aggregate(Avg("rating"))["rating__avg"] or 0.0
 
     product_rating, created = ProductRating.objects.get_or_create(product=product)
     product_rating.average_rating = reviews_average
-    product_rating.total_reviews = reviews_average
+    product_rating.total_reviews = total_reviews
     product_rating.save()

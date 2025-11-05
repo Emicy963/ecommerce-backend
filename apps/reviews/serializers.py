@@ -6,7 +6,13 @@ User = get_user_model()
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    user = serializers.StringRelatedField(read_only=True)
+    """
+    Serializer para avaliações de produtos.
+    """
+
+    user = serializers.StringRelatedField(
+        read_only=True, help_text="Usuário que fez a avaliação"
+    )
 
     class Meta:
         model = Review
@@ -14,6 +20,10 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class ProductRatingSerializer(serializers.ModelSerializer):
+    """
+    Serializer para classificação média de produtos.
+    """
+
     class Meta:
         model = ProductRating
         fields = ["average_rating", "total_reviews"]

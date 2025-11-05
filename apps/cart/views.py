@@ -10,17 +10,35 @@ from .serializers import CartItemSerializer, CartSerializer
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def get_cart(request, cart_code):
+    """
+    Endpoint para obter detalhes de um carrinho pelo código.
+
+    Parâmetros:
+    - cart_code: Código do carrinho
+
+    Retorna:
+    - Detalhes do carrinho ou mensagem de erro
+    """
     try:
         cart = Cart.objects.get(cart_code=cart_code)
         serializer = CartSerializer(cart)
         return Response(serializer.data)
     except Cart.DoesNotExist:
-        return Response({"error": "Cart not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"error": "Carrinho não encontrado."}, status=status.HTTP_404_NOT_FOUND
+        )
 
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def create_cart(request):
+    """
+    Endpoint para criar um novo carrinho.
+    Gera um código único para o carrinho.
+
+    Retorna:
+    - Detalhes do carrinho criado
+    """
     import random
     import string
 
@@ -31,8 +49,19 @@ def create_cart(request):
 
 
 @api_view(["POST"])
+@permission_classes([AllowAny])
 def add_to_cart(request, cart_code):
-    cart_code = request.data.get("cart_code")
+    """
+    Endpoint para adicionar um produto ao carrinho.
+
+    Parâmetros:
+    - cart_code: Código do carrinho (obtido da URL)
+    - product_id: ID do produto
+    - quantity: Quantidade (opcional, padrão: 1)
+
+    Retorna:
+    - Detalhes do carrinho atualizado ou mensagem de erro
+    """
     product_id = request.data.get("product_id")
     quantity = request.data.get("quantity", 1)
 
@@ -46,7 +75,7 @@ def add_to_cart(request, cart_code):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    # Verificar se tem producto suficiente em estoque
+    # Verificar se tem produto suficiente em estoque
     if product.stock_quantity < quantity:
         return Response(
             {
@@ -60,7 +89,7 @@ def add_to_cart(request, cart_code):
     if created:
         cartitem.quantity = quantity
     else:
-        # Verificar se a nova quantidade in estoque é excedido
+        # Verificar se a nova quantidade em estoque é excedido
         new_quantity = cartitem.quantity + quantity
         if product.stock_quantity < new_quantity:
             return Response(
@@ -79,6 +108,16 @@ def add_to_cart(request, cart_code):
 
 @api_view(["PUT"])
 def update_cartitem_quantity(request):
+    """
+    Endpoint para atualizar a quantidade de um item no carrinho.
+
+    Parâmetros:
+    - item_id: ID do item no carrinho
+    - quantity: Nova quantidade
+
+    Retorna:
+    - Detalhes do item atualizado ou mensagem de erro
+    """
     cartitem_id = request.data.get("item_id")
     quantity = request.data.get("quantity")
 
@@ -113,7 +152,17 @@ def update_cartitem_quantity(request):
 
 
 @api_view(["DELETE"])
+@permission_classes([IsAuthenticated])  # Adicionado permissão
 def delete_cartitem(request, pk):
+    """
+    Endpoint para remover um item do carrinho.
+
+    Parâmetros:
+    - pk: ID do item no carrinho
+
+    Retorna:
+    - Mensagem de sucesso ou erro
+    """
     try:
         cartitem = CartItem.objects.get(id=pk)
         cartitem.delete()
@@ -130,6 +179,12 @@ def delete_cartitem(request, pk):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_user_cart(request):
+    """
+    Endpoint para criar ou obter o carrinho do usuário autenticado.
+
+    Retorna:
+    - Detalhes do carrinho do usuário
+    """
     cart, created = Cart.objects.get_or_create(user=request.user)
     if created:
         # Gerar um código para o carrinho
@@ -146,6 +201,12 @@ def create_user_cart(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_user_cart(request):
+    """
+    Endpoint para obter o carrinho do usuário autenticado.
+
+    Retorna:
+    - Detalhes do carrinho do usuário ou mensagem de erro
+    """
     try:
         cart = Cart.objects.get(user=request.user)
         serializer = CartSerializer(cart)
@@ -159,6 +220,15 @@ def get_user_cart(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def merge_carts(request):
+    """
+    Endpoint para mesclar o carrinho temporário com o carrinho do usuário.
+
+    Parâmetros:
+    - temp_cart_code: Código do carrinho temporário
+
+    Retorna:
+    - Detalhes do carrinho mesclado ou mensagem de erro
+    """
     try:
         user_cart, created = Cart.objects.get_or_create(user=request.user)
         if created:
@@ -179,7 +249,7 @@ def merge_carts(request):
                         not item.product.in_stock
                         or item.product.stock_quantity < item.quantity
                     ):
-                        continue  # Skip out of stock items
+                        continue  # Pular itens fora de estoque
 
                     CartItem.objects.update_or_create(
                         cart=user_cart,

@@ -10,14 +10,20 @@ from .serializers import WishlistSerializer
 @permission_classes([IsAuthenticated])
 def add_to_wishlist(request):
     """
-    Adiciona ou remove um produto da lista de desejos
-    """
+    Adiciona ou remove um produto da lista de desejos.
 
+    Args:
+        request: Objeto de requisição contendo o ID do produto
+
+    Returns:
+        Response: Dados do item adicionado ou mensagem de remoção
+    """
     product_id = request.data.get("product_id")
 
     if not product_id:
         return Response(
-            {"error": "Produto não encontrado."}, status=status.HTTP_404_NOT_FOUND
+            {"error": "ID do produto não fornecido."},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
     try:
@@ -38,7 +44,7 @@ def add_to_wishlist(request):
         # Se já existe, remover da lista
         wishlist_item.delete()
         return Response(
-            {"message": "O Produto foi removido da lista de desejos."},
+            {"message": "O produto foi removido da lista de desejos."},
             status=status.HTTP_204_NO_CONTENT,
         )
 
@@ -51,7 +57,13 @@ def add_to_wishlist(request):
 @permission_classes([IsAuthenticated])
 def get_user_wishlist(request):
     """
-    Obtém a lista de dessjos do usuário
+    Obtém a lista de desejos do usuário.
+
+    Args:
+        request: Objeto de requisição
+
+    Returns:
+        Response: Lista de itens na lista de desejos do usuário
     """
     wishlist_items = Wishlist.objects.filter(user=request.user)
     serializer = WishlistSerializer(wishlist_items, many=True)
@@ -62,7 +74,14 @@ def get_user_wishlist(request):
 @permission_classes([IsAuthenticated])
 def delete_wishlist_item(request, pk):
     """
-    Remove um item da lista de desejos
+    Remove um item da lista de desejos.
+
+    Args:
+        request: Objeto de requisição
+        pk: ID do item a ser removido
+
+    Returns:
+        Response: Mensagem de sucesso ou erro
     """
     try:
         wishlist_item = Wishlist.objects.get(pk=pk, user=request.user)
@@ -73,6 +92,6 @@ def delete_wishlist_item(request, pk):
         )
     except Wishlist.DoesNotExist:
         return Response(
-            {"error": "Lista de desejos não encontrado."},
+            {"error": "Item não encontrado na lista de desejos."},
             status=status.HTTP_404_NOT_FOUND,
         )

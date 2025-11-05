@@ -3,7 +3,14 @@ from .models import Category, Product
 
 
 class ProductListSerializer(serializers.ModelSerializer):
-    store_name = serializers.CharField(source="store.name", read_only=True)
+    """
+    Serializer para listagem de produtos.
+    Inclui informações básicas e o nome da loja.
+    """
+
+    store_name = serializers.CharField(
+        source="store.name", read_only=True, help_text="Nome da loja"
+    )
 
     class Meta:
         model = Product
@@ -11,8 +18,15 @@ class ProductListSerializer(serializers.ModelSerializer):
 
 
 class ProductDetailSerializer(serializers.ModelSerializer):
-    store = serializers.StringRelatedField(read_only=True)
-    category = serializers.StringRelatedField(read_only=True)
+    """
+    Serializer para detalhes de produtos.
+    Inclui todas as informações do produto.
+    """
+
+    store = serializers.StringRelatedField(read_only=True, help_text="Nome da loja")
+    category = serializers.StringRelatedField(
+        read_only=True, help_text="Nome da categoria"
+    )
 
     class Meta:
         model = Product
@@ -32,13 +46,25 @@ class ProductDetailSerializer(serializers.ModelSerializer):
 
 
 class CategoryListSerializer(serializers.ModelSerializer):
+    """
+    Serializer para listagem de categorias.
+    Inclui informações básicas da categoria.
+    """
+
     class Meta:
         model = Category
         fields = ["id", "name", "image", "slug"]
 
 
 class CategoryDetailSerializer(serializers.ModelSerializer):
-    products = ProductListSerializer(many=True, read_only=True)
+    """
+    Serializer para detalhes de categorias.
+    Inclui a lista de produtos da categoria.
+    """
+
+    products = ProductListSerializer(
+        many=True, read_only=True, help_text="Produtos da categoria"
+    )
 
     class Meta:
         model = Category
@@ -46,6 +72,11 @@ class CategoryDetailSerializer(serializers.ModelSerializer):
 
 
 class ProductCreateSerializer(serializers.ModelSerializer):
+    """
+    Serializer para criação de produtos.
+    Inclui apenas os campos necessários para criação.
+    """
+
     class Meta:
         model = Product
         fields = [
@@ -60,10 +91,13 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        # Get the store from the context
+        """
+        Cria um novo produto associado à loja do usuário autenticado.
+        """
+        # Obtém a loja do contexto
         user = self.context["request"].user
         if not hasattr(user, "store"):
-            raise serializers.ValidationError("You don't have a store.")
+            raise serializers.ValidationError("Você não possui uma loja.")
 
         validated_data["store"] = user.store
         return super().create(validated_data)

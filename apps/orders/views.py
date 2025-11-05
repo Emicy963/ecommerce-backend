@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from apps.cart.models import Cart
 from .payments import AOAPaymentProcessor
 from .models import Order, OrderItem
-from .serializes import CreateOrderSerializer, OrderSerializer
+from .serializers import CreateOrderSerializer, OrderSerializer
 
 
 @api_view(["POST"])
@@ -24,13 +24,13 @@ def create_order(request):
     reference_number = serializer.validated_data.get("reference_number")
 
     try:
-        # Order carrinho
+        # Obter carrinho
         cart = Cart.objects.get(cart_code=cart_code)
 
         # Verificar se o carrinho tem itens
         if not cart.cartitems.exists():
             return Response(
-                {"error": "O carrinho está vázio."}, status=status.HTTP_400_BAD_REQUEST
+                {"error": "O carrinho está vazio."}, status=status.HTTP_400_BAD_REQUEST
             )
 
         # Calcular total
@@ -47,13 +47,13 @@ def create_order(request):
 
         # Criar itens do pedido
         for cart_item in cart.cartitems.all():
-            # Verificar se o processo ainda está em estoque
+            # Verificar se o produto ainda está em estoque
             product = cart_item.product
             if not product.in_stock or product.stock_quantity < cart_item.quantity:
                 order.delete()
                 return Response(
                     {
-                        "error": f"O produto {product.name} não tem quantidades suficientes em estoque."
+                        "error": f"O produto {product.name} não tem quantidade suficiente em estoque."
                     },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
@@ -73,7 +73,7 @@ def create_order(request):
             product.save()
 
         # Processar pagamento
-        success, transation_id, message = AOAPaymentProcessor.process_payment(
+        success, transaction_id, message = AOAPaymentProcessor.process_payment(
             order, payment_method, reference_number
         )
 
@@ -81,13 +81,13 @@ def create_order(request):
             # Limpar carrinho após pedido bem-sucedido
             cart.cartitems.all().delete()
 
-            # Retornar dado do pedido
+            # Retornar dados do pedido
             order_serializer = OrderSerializer(order)
             return Response(
                 {
                     "order": order_serializer.data,
                     "message": message,
-                    "transaction_id": transation_id,
+                    "transaction_id": transaction_id,
                 },
                 status=status.HTTP_201_CREATED,
             )
@@ -152,7 +152,7 @@ def request_refund(request, order_number):
         # Verificar se o pedido é elegível para reembolso
         if order.status not in ["confirmed", "processing", "shipped"]:
             return Response(
-                {"error": "Este pedido não é elegível para o reembolso"},
+                {"error": "Este pedido não é elegível para reembolso"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -181,14 +181,14 @@ def get_store_orders(request):
     # Verificar se o usuário é um vendedor
     if request.user.user_type != "seller":
         return Response(
-            {"error": "Apenas vendedores pode acessar o pedidos das lojas."},
+            {"error": "Apenas vendedores podem acessar os pedidos das lojas."},
             status=status.HTTP_403_FORBIDDEN,
         )
 
     # Verificar se o vendedor tem uma loja
     if not hasattr(request.user, "store"):
         return Response(
-            {"error": "Não tens uma loja."}, status=status.HTTP_400_BAD_REQUEST
+            {"error": "Você não tem uma loja."}, status=status.HTTP_400_BAD_REQUEST
         )
 
     # Obter itens de pedido para produtos da loja
@@ -213,14 +213,14 @@ def update_order_status(request, order_number):
     # Verificar se o usuário é um vendedor
     if request.user.user_type != "seller":
         return Response(
-            {"error": "Apenas vendedores pode atualizar o status do pedido."},
+            {"error": "Apenas vendedores podem atualizar o status do pedido."},
             status=status.HTTP_403_FORBIDDEN,
         )
 
     # Verificar se o vendedor tem uma loja
     if not hasattr(request.user, "store"):
         return Response(
-            {"error": "Não tens uma loja."}, status=status.HTTP_400_BAD_REQUEST
+            {"error": "Você não tem uma loja."}, status=status.HTTP_400_BAD_REQUEST
         )
 
     try:
@@ -232,7 +232,7 @@ def update_order_status(request, order_number):
 
         if not has_store_product:
             return Response(
-                {"error": "Esse pedido não contém productos da sua loja."},
+                {"error": "Este pedido não contém produtos da sua loja."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -240,7 +240,8 @@ def update_order_status(request, order_number):
         new_status = request.data.get("status")
         if not new_status:
             return Response(
-                {"error": "Pecisa de status."}, status=status.HTTP_400_BAD_REQUEST
+                {"error": "Precisa fornecer um status."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         # Validar status
@@ -248,7 +249,7 @@ def update_order_status(request, order_number):
         if new_status not in valid_statuses:
             return Response(
                 {
-                    "error": f"Status inválido. Status validos são: {", ".join(valid_statuses)}"
+                    "error": f"Status inválido. Status válidos são: {', '.join(valid_statuses)}"
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )

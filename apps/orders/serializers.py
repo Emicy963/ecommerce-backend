@@ -4,7 +4,12 @@ from apps.products.serializers import ProductListSerializer
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
-    product = ProductListSerializer(read_only=True)
+    """
+    Serializer para itens de pedido.
+    Inclui informações do produto.
+    """
+
+    product = ProductListSerializer(read_only=True, help_text="Produto do pedido")
 
     class Meta:
         model = OrderItem
@@ -12,7 +17,12 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    items = OrderItemSerializer(read_only=True, many=True)
+    """
+    Serializer para pedidos.
+    Inclui todos os itens do pedido.
+    """
+
+    items = OrderItemSerializer(read_only=True, many=True, help_text="Itens do pedido")
 
     class Meta:
         model = Order
@@ -30,6 +40,10 @@ class OrderSerializer(serializers.ModelSerializer):
 
 
 class PaymentSerializer(serializers.ModelSerializer):
+    """
+    Serializer para pagamentos.
+    """
+
     class Meta:
         model = Payment
         fields = [
@@ -45,9 +59,18 @@ class PaymentSerializer(serializers.ModelSerializer):
 
 
 class CreateOrderSerializer(serializers.Serializer):
-    cart_code = serializers.CharField()
-    shipping_address = serializers.CharField()
-    payment_method = serializers.ChoiceField(choices=Payment.PAYMENT_METHOD_CHOICES)
+    """
+    Serializer para criação de pedidos.
+    """
+
+    cart_code = serializers.CharField(help_text="Código do carrinho de compras")
+    shipping_address = serializers.CharField(help_text="Endereço de entrega")
+    payment_method = serializers.ChoiceField(
+        choices=Payment.PAYMENT_METHOD_CHOICES, help_text="Método de pagamento"
+    )
     reference_number = serializers.CharField(
-        required=False, allow_blank=True, allow_null=True
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+        help_text="Número de referência (para pagamentos por referência)",
     )

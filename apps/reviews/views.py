@@ -7,16 +7,21 @@ from apps.orders.models import OrderItem
 from .models import ProductRating, Review
 from .serializers import ProductRatingSerializer, ReviewSerializer
 
-User = get_user_model
+User = get_user_model()
 
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def add_review(request):
     """
-    Adicinar uma avaliação para um produto
-    """
+    Adicionar uma avaliação para um produto.
 
+    Args:
+        request: Objeto de requisição contendo os dados da avaliação
+
+    Returns:
+        Response: Dados da avaliação criada ou mensagem de erro
+    """
     product_id = request.data.get("product_id")
     rating = request.data.get("rating")
     comment = request.data.get("comment")
@@ -43,16 +48,16 @@ def add_review(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    # Verificar se o usuário comprou este producto
+    # Verificar se o usuário comprou este produto
     has_purchased = OrderItem.objects.filter(
         product=product,
         order__user=request.user,
-        order__status_in=["confirmed", "processing", "shipped", "delivered"],
+        order__status__in=["confirmed", "processing", "shipped", "delivered"],
     ).exists()
 
     if not has_purchased:
         return Response(
-            {"error": "Podes apenas avaliar o produto você já comprou."},
+            {"error": "Podes apenas avaliar o produto que já comprou."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -69,14 +74,20 @@ def add_review(request):
 @permission_classes([IsAuthenticated])
 def update_review(request, pk):
     """
-    Atualiza uma avaliação existente
-    """
+    Atualiza uma avaliação existente.
 
+    Args:
+        request: Objeto de requisição contendo os dados atualizados
+        pk: ID da avaliação a ser atualizada
+
+    Returns:
+        Response: Dados da avaliação atualizada ou mensagem de erro
+    """
     try:
         review = Review.objects.get(pk=pk, user=request.user)
     except Review.DoesNotExist:
         return Response(
-            {"error": "Avalaição não encontrada."}, status=status.HTTP_404_NOT_FOUND
+            {"error": "Avaliação não encontrada."}, status=status.HTTP_404_NOT_FOUND
         )
 
     rating = request.data.get("rating")
@@ -97,9 +108,15 @@ def update_review(request, pk):
 @permission_classes([IsAuthenticated])
 def delete_review(request, pk):
     """
-    Exclui uma avaliação
-    """
+    Exclui uma avaliação.
 
+    Args:
+        request: Objeto de requisição
+        pk: ID da avaliação a ser excluída
+
+    Returns:
+        Response: Mensagem de sucesso ou erro
+    """
     try:
         review = Review.objects.get(pk=pk, user=request.user)
         review.delete()
@@ -117,7 +134,14 @@ def delete_review(request, pk):
 @permission_classes([IsAuthenticated])
 def get_product_reviews(request, product_id):
     """
-    Obtém todas as avaliações para um produto específico
+    Obtém todas as avaliações para um produto específico.
+
+    Args:
+        request: Objeto de requisição
+        product_id: ID do produto
+
+    Returns:
+        Response: Lista de avaliações e classificação média ou mensagem de erro
     """
     try:
         from apps.products.models import Product
@@ -145,9 +169,14 @@ def get_product_reviews(request, product_id):
 @permission_classes([IsAuthenticated])
 def get_user_reviews(request):
     """
-    Obtém todas as avaliações do usuário
-    """
+    Obtém todas as avaliações do usuário.
 
+    Args:
+        request: Objeto de requisição
+
+    Returns:
+        Response: Lista de avaliações do usuário
+    """
     reviews = Review.objects.filter(user=request.user)
     serializer = ReviewSerializer(reviews, many=True)
     return Response(serializer.data)
@@ -158,13 +187,18 @@ def get_user_reviews(request):
 @permission_classes([IsAuthenticated])
 def get_store_product_reviews(request):
     """
-    Obtém todas as avaliações dos produtos da loja do vendedor
-    """
+    Obtém todas as avaliações dos produtos da loja do vendedor.
 
+    Args:
+        request: Objeto de requisição
+
+    Returns:
+        Response: Lista de avaliações dos produtos da loja ou mensagem de erro
+    """
     # Verificar se o usuário é um vendedor
     if request.user.user_type != "seller":
         return Response(
-            {"error": "Apenas vendedores podem acessas esta informação."},
+            {"error": "Apenas vendedores podem acessar esta informação."},
             status=status.HTTP_403_FORBIDDEN,
         )
 
