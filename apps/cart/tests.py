@@ -1,5 +1,7 @@
 from django.test import TestCase
-from django.contrib.auth import get_user_model()
+from django.urls import reverse
+from rest_framework import status
+from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase
 from .models import Cart, CartItem
 from apps.products.models import Product, Category
@@ -73,3 +75,16 @@ class CartAPITest(APITestCase):
             in_stock=True
         )
         self.cart = Cart.objects.create(cart_code="TEST12345678")
+    
+    def test_get_cart(self):
+        """Testa a obtenção de um carrinho"""
+        url = reverse("get_cart", kwargs={"cart_code": self.cart.cart_code})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["cart_code"], self.cart.cart_code)
+    
+    def test_get_cart_not_found(self):
+        """Testa a tentativa de obter um carrinho inexistente"""
+        url = reverse("get_cart", kwargs={"cart_code": "NONEXISTENT"})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
