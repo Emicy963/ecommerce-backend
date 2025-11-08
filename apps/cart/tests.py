@@ -88,3 +88,23 @@ class CartAPITest(APITestCase):
         url = reverse("get_cart", kwargs={"cart_code": "NONEXISTENT"})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    
+    def test_create_cart(self):
+        """Testa a criação de um novo carrinho"""
+        url = reverse("create_cart")
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn("cart_code", response.data)
+        self.assertEqual(len(response.data["cart_code"]), 11)
+    
+    def test_add_to_cart(self):
+        """Testa a adição de um produto ao carrinho"""
+        url = reverse("add_to_cart", kwargs={"cart_code": self.cart.cart_code})
+        data = {
+            "product_id": self.product.id,
+            "quantity": 2
+        }
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["cartitems"]), 1)
+        self.assertEqual(response.data["cartitems"][0]["quantity"], 2)
