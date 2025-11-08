@@ -108,3 +108,23 @@ class CartAPITest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["cartitems"]), 1)
         self.assertEqual(response.data["cartitems"][0]["quantity"], 2)
+    
+    def test_add_to_cart_product_not_found(self):
+        """Testa a adição de um produto inexistente ao carrinho"""
+        url = reverse("add_to_cart", kwargs={"cart_code": self.cart.cart_code})
+        data = {
+            "product_id": 999,
+            "quantity": 2
+        }
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+    
+    def test_add_to_cart_insufficient_stock(self):
+        """Testa a adição de um produto com estoque insuficiente"""
+        url = reverse("add_to_cart", kwargs={"cart_code": self.cart.cart_code})
+        data = {
+            "product_id": self.product.id,
+            "quantity": 20  # Mais do que o estoque disponível (10)
+        }
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
