@@ -3,6 +3,7 @@ from django.urls import reverse
 from rest_framework import status
 from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase
+from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Cart, CartItem
 from apps.products.models import Product, Category
 
@@ -128,3 +129,26 @@ class CartAPITest(APITestCase):
         }
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    
+    def test_update_cartitem_quantity(self):
+        """Testa a atualização da quantidade de um item no carrinho"""
+        # Primeiro adiciona um item ao carrinho
+        cart_item = CartItem.objects.create(
+            cart=self.cart,
+            product=self.product,
+            quantity=2
+        )
+        
+        # Autentica o usuário
+        refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+        
+        # Atualiza a quantidade
+        url = reverse("update_cartitem_quantity")
+        data = {
+            "item_id": cart_item.id,
+            "quantity": 5
+        }
+        response = self.client.put(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["data"]["quantity"], 5)
