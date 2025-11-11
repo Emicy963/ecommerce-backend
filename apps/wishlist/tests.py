@@ -1,7 +1,9 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
+from rest_framework.test import APITestCase
 from .models import Wishlist
 from apps.products.models import Category, Product
+from apps.accounts.models import Store
 
 User = get_user_model()
 
@@ -45,3 +47,33 @@ class WishlistModelTest(TestCase):
                 user=self.user,
                 product=self.product,
             )
+
+
+class WishlistAPITest(APITestCase):
+    """Testes para os endpoints da lista de desejos"""
+
+    def setUp(self):
+        """Configuração inicial para os testes"""
+        self.user = User.objects.create_user(
+            username="testuser",
+            email="test@example.com",
+            password="testpass123"
+        )
+        self.seller = User.objects.create_user(
+            username="seller",
+            email="seller@example.com",
+            password="sellerpass123",
+            user_type="seller",
+            is_approved_seller=True
+        )
+        self.store = Store.objects.create(
+            name="Test Store",
+            owner=self.seller
+        )
+        self.category = Category.objects.create(name="Test Category")
+        self.product = Product.objects.create(
+            name="Test Product",
+            price=10.99,
+            category=self.category,
+            store=self.store
+        )
