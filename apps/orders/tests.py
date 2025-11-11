@@ -69,3 +69,15 @@ class PaymentModelTest(TestCase):
             payment_method="reference",
             amount=100.00
         )
+    
+    def test_payment_creation(self):
+        """Testa a criação de um pagamento"""
+        self.assertEqual(self.payment.order, self.order)
+        self.assertEqual(self.payment.payment_method, "reference")
+        self.assertEqual(self.payment.amount, 100.00)
+        self.assertEqual(self.payment.payment_status, "pending")
+    
+    def test_payment_str(self):
+        """Testa o método __str__ do modelo Payment"""
+        expected_str = f"Pagamento para o pedido: {self.order.order_number}"
+        self.assertEqual(str(self.payment), expected_str)
