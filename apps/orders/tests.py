@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
-from .models import Order, OrderItem
+from .models import Order, OrderItem, Payment
 from apps.products.models import Category, Product
 
 User = get_user_model()
@@ -47,3 +47,25 @@ class OrderModelTest(TestCase):
         """Testa o método __str__ do modelo OrderItem"""
         expected_str = f"2 x {self.product.name} pedido: {self.order.order_number}."
         self.assertEqual(str(self.order_item), expected_str)
+
+
+class PaymentModelTest(TestCase):
+    """Testes para o modelo Payment"""
+    
+    def setUp(self):
+        """Configuração inicial para os testes"""
+        self.user = User.objects.create_user(
+            username="testuser",
+            email="test@example.com",
+            password="testpass123"
+        )
+        self.order = Order.objects.create(
+            user=self.user,
+            total_amount=100.00,
+            shipping_address="Test Address"
+        )
+        self.payment = Payment.objects.create(
+            order=self.order,
+            payment_method="reference",
+            amount=100.00
+        )
