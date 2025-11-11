@@ -1,6 +1,9 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
+from django.urls import reverse
+from rest_framework import status
 from rest_framework.test import APITestCase
+from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Order, OrderItem, Payment
 from apps.products.models import Category, Product
 from apps.accounts.models import Store
@@ -122,3 +125,35 @@ class OrderAPITest(APITestCase):
             product=self.product,
             quantity=2,
         )
+    
+    def test_create_order(self):
+        """Testa a criação de um pedido"""
+
+        # Autentica o usuário
+        refresh = RefreshToken.for_user(self.user)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
+
+        # Cria o pedido
+        url = reverse("create_order")
+        data = {
+            "cart_code": "TEST12345678",
+            "shipping_address": "Test Address",
+            "payment_method": "reference",
+        }
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn("order", response.data)
+        self.assertIn("message", response.data)
+
+        # Verifica se o pedido foi criado
+        order = Order.objects.get(user=self.user)
+        self.assertEqual(order.shipping_address, "Test Address")
+        self.assertEqual(order.total_amount, 21.98)  # 10.99 * 2
+        
+        # Verifica se os itens do pedido foram criados
+        self.assertEqual(order.items.count(), 1)
+        self.assertEqual(order.items.first().product, self.product)
+        
+        # Verifica se o estoque foi atualizado
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.stock_quantity, 8)  # 10 - 2
