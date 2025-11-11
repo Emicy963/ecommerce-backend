@@ -39,12 +39,12 @@ THIRDS_APPs = [
 ]
 
 LOCAL_APPS = [
-    "apps.accounts",
-    "apps.products",
-    "apps.cart",
-    "apps.orders",
+    "apps.accounts.apps.AccountsConfig",
+    "apps.products.apps.ProductsConfig",
+    "apps.cart.apps.CartConfig",
+    "apps.orders.apps.OrdersConfig",
     "apps.reviews.apps.ReviewsConfig",
-    "apps.wishlist",
+    "apps.wishlist.apps.WishlistConfig",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRDS_APPs + LOCAL_APPS
