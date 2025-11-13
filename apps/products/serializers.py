@@ -89,6 +89,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             "stock_quantity",
             "category",
         ]
+        read_only_fields = ["store"]
 
     def create(self, validated_data):
         """

@@ -4,6 +4,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.db.models import Q
 from .models import Category, Product
+from apps.accounts.models import Store
 from .serializers import (
     CategoryDetailSerializer,
     CategoryListSerializer,
@@ -95,7 +96,7 @@ def category_detail(request, slug):
         )
 
 
-@api_view(["GET"])
+@api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_product(request):
     """
@@ -224,8 +225,6 @@ def store_products(request, slug):
     - Lista de produtos da loja ou mensagem de erro
     """
     try:
-        from accounts.models import Store
-
         store = Store.objects.get(slug=slug, is_active=True)
         products = Product.objects.filter(store=store)
         serializer = ProductListSerializer(products, many=True)

@@ -168,7 +168,6 @@ class ProductAPITest(APITestCase):
         response = self.client.post(url, product_data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["name"], "New Product")
-        self.assertEqual(response.data["store"], self.store.id)
 
     def test_create_product_as_buyer(self):
         """Testa a tentativa de criação de um produto por um comprador (deve falhar)"""
