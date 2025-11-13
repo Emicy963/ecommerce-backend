@@ -196,21 +196,26 @@ def delete_cartitem(request, pk):
 def create_user_cart(request):
     """
     Endpoint para criar ou obter o carrinho do usuário autenticado.
-
-    Retorna:
-    - Detalhes do carrinho do usuário
     """
-    cart, created = Cart.objects.get_or_create(user=request.user)
-    if created:
-        # Gerar um código para o carrinho
-        import random
-        import string
-
-        cart_code = "".join(random.choices(string.ascii_letters + string.digits, k=11))
-        cart.cart_code = cart_code
-        cart.save()
-    serializer = CartSerializer(cart)
-    return Response(serializer.data)
+    import random
+    import string
+    
+    # Tenta obter o carrinho existente
+    try:
+        cart = request.user.cart
+        serializer = CartSerializer(cart)
+        return Response(serializer.data)
+    except Cart.DoesNotExist:
+        # Cria um novo carrinho
+        cart_code = "".join(
+            random.choices(string.ascii_letters + string.digits, k=11)
+        )
+        cart = Cart.objects.create(
+            user=request.user,
+            cart_code=cart_code
+        )
+        serializer = CartSerializer(cart)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 @api_view(["GET"])
@@ -218,17 +223,15 @@ def create_user_cart(request):
 def get_user_cart(request):
     """
     Endpoint para obter o carrinho do usuário autenticado.
-
-    Retorna:
-    - Detalhes do carrinho do usuário ou mensagem de erro
     """
     try:
-        cart = Cart.objects.get(user=request.user)
+        cart = request.user.cart
         serializer = CartSerializer(cart)
         return Response(serializer.data)
     except Cart.DoesNotExist:
         return Response(
-            {"error": "Carrinho não encontrado."}, status=status.HTTP_404_NOT_FOUND
+            {"error": "Carrinho não encontrado."}, 
+            status=status.HTTP_404_NOT_FOUND
         )
 
 
