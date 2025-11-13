@@ -217,7 +217,7 @@ class CartAPITest(APITestCase):
         # Cria o carrinho do usuário
         url = reverse("create_user_cart")
         response = self.client.post(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn("cart_code", response.data)
 
         # Verifica se o carrinho foi associado ao usuário
