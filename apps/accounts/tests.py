@@ -142,6 +142,10 @@ class AuthenticationAPITest(APITestCase):
         }
         response = self.client.post(url, login_data, format="json")
         refresh_token = response.data["refresh"]
+        access_token = response.data["access"]
+        
+        # Configura as credenciais de autenticação
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {access_token}")
         
         # Agora faz logout
         url = reverse("logout")
