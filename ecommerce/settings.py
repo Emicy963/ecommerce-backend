@@ -169,6 +169,36 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
+# Adicionar ao settings.py após REST_FRAMEWORK
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "E-commerce API",
+    "DESCRIPTION": "API completa para sistema de e-commerce com marketplace",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,
+    "SCHEMA_PATH_PREFIX": r"/api/v1",
+    "SERVERS": [
+        {"url": "http://localhost:8000", "description": "Servidor Local"},
+    ],
+    "TAGS": [
+        {
+            "name": "Authentication",
+            "description": "Endpoints de autenticação e gerenciamento de usuários",
+        },
+        {"name": "Products", "description": "Gerenciamento de produtos e categorias"},
+        {"name": "Cart", "description": "Carrinho de compras"},
+        {"name": "Orders", "description": "Gerenciamento de pedidos"},
+        {"name": "Reviews", "description": "Avaliações de produtos"},
+        {"name": "Wishlist", "description": "Lista de desejos"},
+        {"name": "Store", "description": "Gerenciamento de lojas"},
+    ],
+    "CONTACT": {"name": "Suporte API", "email": "suporte@ecommerce.ao"},
+    "LICENSE": {
+        "name": "Proprietário",
+    },
+}
+
 from datetime import timedelta
 
 SIMPLE_JWT = {
