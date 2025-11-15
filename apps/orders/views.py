@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -30,47 +31,51 @@ def create_order(request):
         # Verificar se o carrinho tem itens
         if not cart.cartitems.exists():
             return Response(
-                {"error": "O carrinho está vazio."}, status=status.HTTP_400_BAD_REQUEST
+                {"error": "O carrinho está vazio."}, 
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Calcular total
-        total_amount = sum(
-            item.quantity * item.product.price for item in cart.cartitems.all()
-        )
+        # Usar o Transaction Atomic para evitar Race Condicion
+        with transaction.atomic():
+            # Calcular total
+            total_amount = sum(
+                item.quantity * item.product.price 
+                for item in cart.cartitems.all()
+            )
 
-        # Criar pedido
-        order = Order.objects.create(
-            user=request.user,
-            total_amount=total_amount,
-            shipping_address=shipping_address,
-        )
+            # Criar pedido
+            order = Order.objects.create(
+                user=request.user,
+                total_amount=total_amount,
+                shipping_address=shipping_address,
+            )
 
-        # Criar itens do pedido
-        for cart_item in cart.cartitems.all():
-            # Verificar se o produto ainda está em estoque
-            product = cart_item.product
-            if not product.in_stock or product.stock_quantity < cart_item.quantity:
-                order.delete()
-                return Response(
-                    {
-                        "error": f"O produto {product.name} não tem quantidade suficiente em estoque."
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
+            # Criar itens do pedido
+            for cart_item in cart.cartitems.all():
+                # Verificar se o produto ainda está em estoque
+                product = cart_item.product
+                if not product.in_stock or product.stock_quantity < cart_item.quantity:
+                    order.delete()
+                    return Response(
+                        {
+                            "error": f"O produto {product.name} não tem quantidade suficiente em estoque."
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                # Criar item do pedido
+                OrderItem.objects.create(
+                    order=order,
+                    product=product,
+                    quantity=cart_item.quantity,
+                    price=product.price,
                 )
 
-            # Criar item do pedido
-            OrderItem.objects.create(
-                order=order,
-                product=product,
-                quantity=cart_item.quantity,
-                price=product.price,
-            )
-
-            # Atualizar estoque
-            product.stock_quantity -= cart_item.quantity
-            if product.stock_quantity == 0:
-                product.in_stock = False
-            product.save()
+                # Atualizar estoque
+                product.stock_quantity -= cart_item.quantity
+                if product.stock_quantity == 0:
+                    product.in_stock = False
+                product.save()
 
         # Processar pagamento
         success, transaction_id, message = AOAPaymentProcessor.process_payment(
@@ -92,21 +97,16 @@ def create_order(request):
                 status=status.HTTP_201_CREATED,
             )
         else:
-            # Se o pagamento falhar, cancelar o pedido
-            order.status = "cancelled"
-            order.save()
-
-            # Devolver produtos ao estoque
-            for item in order.items.all():
-                product = item.product
-                product.stock_quantity += item.quantity
-                product.in_stock = True
-                product.save()
-
-            return Response({"error": message}, status=status.HTTP_400_BAD_REQUEST)
+            # Transaction.atomic vai fazer roolback automático
+            raise Exception(message)
     except Cart.DoesNotExist:
         return Response(
             {"error": "Carrinho não encontrado"}, status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
 
