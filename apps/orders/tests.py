@@ -155,7 +155,8 @@ class OrderAPITest(APITestCase):
         order = Order.objects.get(user=self.user)
         self.assertEqual(order.shipping_address, "Test Address")
         from decimal import Decimal
-        self.assertEqual(order.total_amount, Decimal('21.98'))  # 10.99 * 2
+
+        self.assertEqual(order.total_amount, Decimal("21.98"))  # 10.99 * 2
 
         # Verifica se os itens do pedido foram criados
         self.assertEqual(order.items.count(), 1)

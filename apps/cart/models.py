@@ -23,20 +23,14 @@ class Cart(models.Model):
 
 
 class CartItem(models.Model):
-    cart = models.ForeignKey(
-        Cart, 
-        on_delete=models.CASCADE, 
-        related_name="cartitems"
-    )
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name="cartitems")
     product = models.ForeignKey(
-        "products.Product", 
-        on_delete=models.CASCADE, 
-        related_name="cart_items"
+        "products.Product", on_delete=models.CASCADE, related_name="cart_items"
     )
     quantity = models.IntegerField(default=1)
 
     class Meta:
-        unique_together = [['cart', 'product']]
+        unique_together = [["cart", "product"]]
         verbose_name = "Item do Carrinho"
         verbose_name_plural = "Itens do Carrinho"
 

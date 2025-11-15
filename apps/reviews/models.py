@@ -24,8 +24,7 @@ class Review(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reviews"
     )
     rating = models.PositiveIntegerField(
-        choices=RATINGS_CHOICES,
-        validators=[MinValueValidator(1), MaxValueValidator(5)]
+        choices=RATINGS_CHOICES, validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
     comment = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -54,8 +53,7 @@ class ProductRating(models.Model):
         Product, on_delete=models.CASCADE, related_name="rating"
     )
     average_rating = models.FloatField(
-        default=0.0,
-        validators=[MinValueValidator(0.0), MaxValueValidator(5.0)]
+        default=0.0, validators=[MinValueValidator(0.0), MaxValueValidator(5.0)]
     )
     total_reviews = models.PositiveIntegerField(default=0)
     updated_at = models.DateTimeField(auto_now=True)

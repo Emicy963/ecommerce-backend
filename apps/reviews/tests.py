@@ -28,13 +28,10 @@ class ReviewModelTest(TestCase):
             is_approved_seller=True,
         )
         self.store = Store.objects.create(name="Test Store", owner=self.seller)
-        
+
         self.category = Category.objects.create(name="Test Category")
         self.product = Product.objects.create(
-            name="Test Product", 
-            price=10.99, 
-            category=self.category,
-            store=self.store
+            name="Test Product", price=10.99, category=self.category, store=self.store
         )
         self.review = Review.objects.create(
             product=self.product, user=self.user, rating=4, comment="Great product!"
@@ -73,13 +70,10 @@ class ProductRatingModelTest(TestCase):
             is_approved_seller=True,
         )
         self.store = Store.objects.create(name="Test Store", owner=self.seller)
-        
+
         self.category = Category.objects.create(name="Test Category")
         self.product = Product.objects.create(
-            name="Test Product", 
-            price=10.99, 
-            category=self.category,
-            store=self.store
+            name="Test Product", price=10.99, category=self.category, store=self.store
         )
         self.product_rating = ProductRating.objects.create(
             product=self.product, average_rating=4.5, total_reviews=10
@@ -288,10 +282,7 @@ class ReviewAPITest(APITestCase):
         )
 
         product2 = Product.objects.create(
-            name="Test Product 2", 
-            price=20.99, 
-            category=self.category, 
-            store=self.store
+            name="Test Product 2", price=20.99, category=self.category, store=self.store
         )
         Review.objects.create(
             product=product2, user=self.user, rating=5, comment="Excellent product!"

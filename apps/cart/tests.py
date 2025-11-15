@@ -40,17 +40,11 @@ class CartItemModelTest(TestCase):
             username="seller",
             email="seller@example.com",
             password="testpass123",
-            user_type="seller"
+            user_type="seller",
         )
-        self.store = Store.objects.create(
-            name="Test Store",
-            owner=self.seller
-        )
+        self.store = Store.objects.create(name="Test Store", owner=self.seller)
         self.product = Product.objects.create(
-            name="Test Product", 
-            price=10.99, 
-            category=self.category,
-            store=self.store
+            name="Test Product", price=10.99, category=self.category, store=self.store
         )
         self.cart_item = CartItem.objects.create(
             cart=self.cart, product=self.product, quantity=2
@@ -81,12 +75,9 @@ class CartAPITest(APITestCase):
             username="seller",
             email="seller@example.com",
             password="testpass123",
-            user_type="seller"
+            user_type="seller",
         )
-        self.store = Store.objects.create(
-            name="Test Store",
-            owner=self.seller
-        )
+        self.store = Store.objects.create(name="Test Store", owner=self.seller)
         self.product = Product.objects.create(
             name="Test Product",
             price=10.99,
@@ -121,7 +112,11 @@ class CartAPITest(APITestCase):
     def test_add_to_cart(self):
         """Testa a adição de um produto ao carrinho"""
         url = reverse("add_to_cart")
-        data = {"product_id": self.product.id, "quantity": 2, "cart_code": self.cart.cart_code}
+        data = {
+            "product_id": self.product.id,
+            "quantity": 2,
+            "cart_code": self.cart.cart_code,
+        }
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["cartitems"]), 1)
@@ -140,7 +135,7 @@ class CartAPITest(APITestCase):
         data = {
             "product_id": self.product.id,
             "quantity": 20,  # Mais do que o estoque disponível (10)
-            "cart_code": self.cart.cart_code
+            "cart_code": self.cart.cart_code,
         }
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

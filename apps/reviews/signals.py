@@ -8,26 +8,20 @@ def update_product_rating(product):
     """
     Função auxiliar para atualizar a classificação de um produto.
     Evita duplicação de código e melhora a manutenção.
-    
+
     Args:
         product: Instância do produto a ser atualizado
     """
     # Usar aggregate para obter ambos os valores em uma única query
-    stats = product.reviews.aggregate(
-        avg_rating=Avg("rating"),
-        total=Count("id")
-    )
-    
+    stats = product.reviews.aggregate(avg_rating=Avg("rating"), total=Count("id"))
+
     avg_rating = stats["avg_rating"] or 0.0
     total_reviews = stats["total"]
-    
+
     # Usar update_or_create para evitar race conditions
     ProductRating.objects.update_or_create(
         product=product,
-        defaults={
-            "average_rating": avg_rating,
-            "total_reviews": total_reviews
-        }
+        defaults={"average_rating": avg_rating, "total_reviews": total_reviews},
     )
 
 

@@ -27,11 +27,13 @@ class WishlistModelTest(TestCase):
             is_approved_seller=True,
         )
         self.store = Store.objects.create(
-            name="Test Store", owner=self.seller,
+            name="Test Store",
+            owner=self.seller,
         )
         self.category = Category.objects.create(name="Test Category")
         self.product = Product.objects.create(
-            name="Test Product", price=10.99,
+            name="Test Product",
+            price=10.99,
             category=self.category,
             store=self.store,
         )
@@ -54,19 +56,20 @@ class WishlistModelTest(TestCase):
         """Testa a restrição de unicidade entre usuário e produto"""
         # Usar assertRaises como context manager
         from django.db import IntegrityError
+
         with self.assertRaises(IntegrityError):
             Wishlist.objects.create(user=self.user, product=self.product)
 
     def test_wishlist_ordering(self):
         """Testa se os itens são ordenados por data de criação (mais recente primeiro)"""
         product2 = Product.objects.create(
-            name="Test Product 2", 
-            price=20.99, 
+            name="Test Product 2",
+            price=20.99,
             category=self.category,
             store=self.store,
         )
         wishlist_item2 = Wishlist.objects.create(user=self.user, product=product2)
-        
+
         wishlist_items = Wishlist.objects.filter(user=self.user)
         self.assertEqual(wishlist_items.first(), wishlist_item2)
         self.assertEqual(wishlist_items.last(), self.wishlist_item)
@@ -97,10 +100,12 @@ class WishlistAPITest(APITestCase):
         self.product = Product.objects.create(
             name="Test Product", price=10.99, category=self.category, store=self.store
         )
-        
+
         # Autenticar usuário
         self.refresh = RefreshToken.for_user(self.user)
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.refresh.access_token}")
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {self.refresh.access_token}"
+        )
 
     def tearDown(self):
         """Limpar credenciais após cada teste"""
@@ -111,7 +116,7 @@ class WishlistAPITest(APITestCase):
         url = reverse("add_to_wishlist")
         data = {"product_id": self.product.id}
         response = self.client.post(url, data, format="json")
-        
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["product"]["id"], self.product.id)
         self.assertIn("user", response.data)
@@ -132,7 +137,7 @@ class WishlistAPITest(APITestCase):
         url = reverse("add_to_wishlist")
         data = {"product_id": self.product.id}
         response = self.client.post(url, data, format="json")
-        
+
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertIn("message", response.data)
 
@@ -146,7 +151,7 @@ class WishlistAPITest(APITestCase):
         url = reverse("add_to_wishlist")
         data = {}
         response = self.client.post(url, data, format="json")
-        
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("error", response.data)
 
@@ -155,7 +160,7 @@ class WishlistAPITest(APITestCase):
         url = reverse("add_to_wishlist")
         data = {"product_id": 999}
         response = self.client.post(url, data, format="json")
-        
+
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertIn("error", response.data)
 
@@ -172,10 +177,10 @@ class WishlistAPITest(APITestCase):
         # Obtém a lista de desejos
         url = reverse("get_user_wishlist")
         response = self.client.get(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
-        
+
         # Verifica estrutura dos dados
         for item in response.data:
             self.assertIn("id", item)
@@ -187,7 +192,7 @@ class WishlistAPITest(APITestCase):
         """Testa obter lista de desejos vazia"""
         url = reverse("get_user_wishlist")
         response = self.client.get(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 0)
 
@@ -199,7 +204,7 @@ class WishlistAPITest(APITestCase):
         # Exclui o item da lista de desejos
         url = reverse("delete_wishlist_item", kwargs={"pk": wishlist_item.id})
         response = self.client.delete(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertIn("message", response.data)
 
@@ -217,9 +222,9 @@ class WishlistAPITest(APITestCase):
         # Tenta excluir o item (usuário original não é dono)
         url = reverse("delete_wishlist_item", kwargs={"pk": wishlist_item.id})
         response = self.client.delete(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        
+
         # Verifica que o item ainda existe
         self.assertTrue(Wishlist.objects.filter(id=wishlist_item.id).exists())
 
@@ -227,7 +232,7 @@ class WishlistAPITest(APITestCase):
         """Testa exclusão de item inexistente"""
         url = reverse("delete_wishlist_item", kwargs={"pk": 999})
         response = self.client.delete(url)
-        
+
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertIn("error", response.data)
 
@@ -235,14 +240,14 @@ class WishlistAPITest(APITestCase):
         """Testa que todos os endpoints requerem autenticação"""
         # Remove autenticação
         self.client.credentials()
-        
+
         # Testa cada endpoint
         endpoints = [
             ("get", reverse("get_user_wishlist")),
             ("post", reverse("add_to_wishlist")),
             ("delete", reverse("delete_wishlist_item", kwargs={"pk": 1})),
         ]
-        
+
         for method, url in endpoints:
             if method == "get":
                 response = self.client.get(url)
@@ -250,29 +255,29 @@ class WishlistAPITest(APITestCase):
                 response = self.client.post(url, {"product_id": 1})
             elif method == "delete":
                 response = self.client.delete(url)
-            
+
             self.assertEqual(
-                response.status_code, 
+                response.status_code,
                 status.HTTP_401_UNAUTHORIZED,
-                f"Endpoint {url} deveria requerer autenticação"
+                f"Endpoint {url} deveria requerer autenticação",
             )
 
     def test_wishlist_prevents_duplicate_on_race_condition(self):
         """Testa comportamento em condições de corrida"""
         url = reverse("add_to_wishlist")
         data = {"product_id": self.product.id}
-        
+
         # Primeira chamada - adiciona
         response1 = self.client.post(url, data, format="json")
         self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
-        
+
         # Segunda chamada - remove
         response2 = self.client.post(url, data, format="json")
         self.assertEqual(response2.status_code, status.HTTP_204_NO_CONTENT)
-        
+
         # Terceira chamada - adiciona novamente
         response3 = self.client.post(url, data, format="json")
         self.assertEqual(response3.status_code, status.HTTP_201_CREATED)
-        
+
         # Deve haver apenas 1 item
         self.assertEqual(Wishlist.objects.filter(user=self.user).count(), 1)

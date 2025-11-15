@@ -33,7 +33,7 @@ def add_review(request):
             {"error": "O ID do produto é obrigatório."},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    
+
     if not rating:
         return Response(
             {"error": "A classificação é obrigatória."},
@@ -57,11 +57,11 @@ def add_review(request):
     # Buscar produto
     try:
         from apps.products.models import Product
+
         product = Product.objects.get(id=product_id)
     except Product.DoesNotExist:
         return Response(
-            {"error": "Produto não encontrado."}, 
-            status=status.HTTP_404_NOT_FOUND
+            {"error": "Produto não encontrado."}, status=status.HTTP_404_NOT_FOUND
         )
 
     # Verificar se o usuário já avaliou este produto
@@ -87,10 +87,7 @@ def add_review(request):
     # Criar avaliação
     try:
         review = Review.objects.create(
-            product=product, 
-            user=request.user, 
-            rating=rating, 
-            comment=comment
+            product=product, user=request.user, rating=rating, comment=comment
         )
         serializer = ReviewSerializer(review)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -118,8 +115,7 @@ def update_review(request, pk):
         review = Review.objects.get(pk=pk, user=request.user)
     except Review.DoesNotExist:
         return Response(
-            {"error": "Avaliação não encontrada."}, 
-            status=status.HTTP_404_NOT_FOUND
+            {"error": "Avaliação não encontrada."}, status=status.HTTP_404_NOT_FOUND
         )
 
     rating = request.data.get("rating")
@@ -140,7 +136,7 @@ def update_review(request, pk):
                 {"error": "Classificação inválida."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-    
+
     if comment is not None:
         review.comment = comment
 
@@ -177,8 +173,7 @@ def delete_review(request, pk):
         )
     except Review.DoesNotExist:
         return Response(
-            {"error": "Avaliação não encontrada."}, 
-            status=status.HTTP_404_NOT_FOUND
+            {"error": "Avaliação não encontrada."}, status=status.HTTP_404_NOT_FOUND
         )
 
 
@@ -197,15 +192,15 @@ def get_product_reviews(request, product_id):
     """
     try:
         from apps.products.models import Product
+
         product = Product.objects.get(id=product_id)
     except Product.DoesNotExist:
         return Response(
-            {"error": "Produto não encontrado."}, 
-            status=status.HTTP_404_NOT_FOUND
+            {"error": "Produto não encontrado."}, status=status.HTTP_404_NOT_FOUND
         )
 
     # Usar select_related para otimizar queries
-    reviews = Review.objects.filter(product=product).select_related('user')
+    reviews = Review.objects.filter(product=product).select_related("user")
     serializer = ReviewSerializer(reviews, many=True)
 
     # Obter classificação média
@@ -231,7 +226,7 @@ def get_user_reviews(request):
         Response: Lista de avaliações do usuário
     """
     # Usar select_related para otimizar queries
-    reviews = Review.objects.filter(user=request.user).select_related('product')
+    reviews = Review.objects.filter(user=request.user).select_related("product")
     serializer = ReviewSerializer(reviews, many=True)
     return Response(serializer.data)
 
@@ -265,9 +260,9 @@ def get_store_product_reviews(request):
 
     # Obter avaliações dos produtos da loja com otimização
     store_products = request.user.store.products.all()
-    reviews = Review.objects.filter(
-        product__in=store_products
-    ).select_related('product', 'user')
-    
+    reviews = Review.objects.filter(product__in=store_products).select_related(
+        "product", "user"
+    )
+
     serializer = ReviewSerializer(reviews, many=True)
     return Response(serializer.data)

@@ -39,7 +39,7 @@ class AOAPaymentProcessor:
 
         # Simulação de processamento de pagamento
         # Em um ambiente real, aqui seria feita a integração com o gateway de pagamento
-        if getattr(settings, 'TESTING', False):
+        if getattr(settings, "TESTING", False):
             # Modo de teste: sempre sucesso
             success = True
         else:
@@ -89,7 +89,7 @@ class AOAPaymentProcessor:
             payment = order.payment
 
             # Simulação de processamento de reembolso
-            if getattr(settings, 'TESTING', False):
+            if getattr(settings, "TESTING", False):
                 # Modo de teste: sempre sucesso
                 success = True
             else:

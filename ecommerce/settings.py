@@ -17,7 +17,9 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
 
-ALLOWED_HOSTS = [host.strip() for host in os.getenv("ALLOWED_HOSTS", "").split(",") if host.strip()]
+ALLOWED_HOSTS = [
+    host.strip() for host in os.getenv("ALLOWED_HOSTS", "").split(",") if host.strip()
+]
 
 
 # Application definition
@@ -131,7 +133,9 @@ USE_TZ = True
 # Static files
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else [] # Verificar se diretório existe antes de adicionar
+STATICFILES_DIRS = (
+    [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else []
+)  # Verificar se diretório existe antes de adicionar
 
 # Media files
 MEDIA_URL = "/media/"
@@ -190,10 +194,9 @@ SIMPLE_JWT = {
 
 # CORS settings
 # ✅ MELHORIA: Adicionar configuração para ambiente de produção
-CORS_ALLOWED_ORIGINS = os.getenv(
-    "CORS_ALLOWED_ORIGINS", 
-    "http://localhost:3000"
-).split(",")
+CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000").split(
+    ","
+)
 
 # Configuração de moeda (AOA - Kwanza)
 CURRENCY_CODE = "AOA"

@@ -11,20 +11,20 @@ class ReviewSerializer(serializers.ModelSerializer):
     """
 
     user = serializers.SerializerMethodField(read_only=True)
-    product_name = serializers.CharField(source='product.name', read_only=True)
-    rating_display = serializers.CharField(source='get_rating_display', read_only=True)
+    product_name = serializers.CharField(source="product.name", read_only=True)
+    rating_display = serializers.CharField(source="get_rating_display", read_only=True)
 
     class Meta:
         model = Review
         fields = [
-            "id", 
-            "user", 
+            "id",
+            "user",
             "product_name",
-            "rating", 
+            "rating",
             "rating_display",
-            "comment", 
-            "created_at", 
-            "updated_at"
+            "comment",
+            "created_at",
+            "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
 
