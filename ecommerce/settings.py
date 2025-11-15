@@ -221,12 +221,40 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=7),
 }
 
+# CORS - Configuração para integração com frontend
 
-# CORS settings
-# ✅ MELHORIA: Adicionar configuração para ambiente de produção
 CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000").split(
     ","
 )
+
+# Permitir credenciais (cookies, authorization headers)
+CORS_ALLOW_CREDENTIALS = True
+
+# Headers permitidos
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+
+# Métodos HTTP permitidos
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+
+# Expor headers específicos ao frontend
+CORS_EXPOSE_HEADERS = ["Content-Type", "X-CSRFToken"]
 
 # Configuração de moeda (AOA - Kwanza)
 CURRENCY_CODE = "AOA"
