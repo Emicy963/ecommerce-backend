@@ -500,8 +500,8 @@ Consulte `MANUAL_TECNICO.md` para instruções detalhadas.
 
 ## 📖 Documentação Adicional
 
-- 📘 [Manual Técnico](MANUAL_TECNICO.md) - Arquitetura e funcionamento
-- 📮 [Guia Postman](GUIA_POSTMAN.md) - Teste de endpoints
+- 📘 [Manual Técnico](docs/MANUAL_TECNICO.md) - Arquitetura e funcionamento
+- 📮 [Guia Postman](docs/GUIA_POSTMAN.md) - Teste de endpoints
 
 ---
 
